@@ -1,8 +1,13 @@
 import numpy as np
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import KFold, GridSearchCV
+from sklearn.ensemble import RandomForestRegressor
+
 
 def generate_X_y(df):
-    '''
+    ''' Generate predictor variables 'X' and the target variable 'y' for subsequent ML models
     Args:
     df - pandas dataframe. The data to be used for following predictive models
 
@@ -11,24 +16,78 @@ def generate_X_y(df):
     y - vector of the response variable
 
     This function follows the steps with the dataframe below to produce X and y:
-    1. Categorical variables that have more than 30 categories will not be considered for X
-    2. Perform one-hot encoding for categorical variables including a column for missing values
-    3. For quantitative variables, fill in missing values with the mean values of corresponding accommodates (use groupby)
+    1. Categorical variables that have more than 30 categories will NOT be considered for X
+    2. For quantitative variables, fill in missing values with the mean values of corresponding "accommodates" (use groupby)
         e.g.) if a row has accommodates=4 and a missing value for 'bathrooms', the mean of 'bathrooms' when accommodates=4 will be filled in.
+    3. Perform one-hot encoding for categorical variables including an addition of encoded column for missing values
     4. Extract all categorical and quantitative variables to X matrix
     5. Take price column as Y vector
     '''
 
-    # Take out the column with categorical variables of more than 30
+    # 1. Take out the column with categorical variables of more than 30
     cat_vars = df.select_dtypes(include=['object']).copy().columns # select the columns of categorical variables
-
     for col in cat_vars:
         if df[col].nunique() > 30:
-            df = df.drop(col, axis=1) # remove the column if the number of unique values is higher than 30
+            df = df.drop(col, axis=1) # remove the column if the number of unique values is higher than 30  
+
+    # 2. For quantitative variables, fill in missing values with the mean values of corresponding "accommodates" (use groupby)
+    num_vars = df.select_dtypes(include=['float', 'int']).columns # take only quantitative variables columns
+    accommodates_groupby = df.groupby('accommodates') # make a groupby object of accommodates
+    for col in num_vars:
+        null_idx = df[df[col].isnull()].index # for each column taken, take the indexes of null values
+        for idx in null_idx:
+            df.loc[idx, col] = accommodates_groupby[col].mean()[df.loc[idx, 'accommodates']] # fill in missing values with the mean value of the chosen column with the same "accommodates"   
+    
+    # 3. Perform one-hot encoding for categorical variables including an addition of encoded column for missing values and drop the original columns
+    updated_cat_vars = df.select_dtypes(include=['object']).copy().columns
+    for var in updated_cat_vars:
+        df = pd.concat([df.drop(var, axis=1), pd.get_dummies(df[var], prefix=var, prefix_sep='_', drop_first=True, dummy_na=True)], axis=1)
+    
+    # 4. Extract all categorical and quantitative variables to X matrix
+    X = df.drop(columns='price').copy()
+
+    # 5. Take price column as Y vector
+    y = df['price'].copy()
+
+    return X, y
     
 
-    # Perform one-hot encoding for categorical variables including a column for missing values
+def do_rfr(X, y):
+     ''' Do regression with random forest model with given X and y
+    Args:
+    X - matrix of predictor variables
+    y - vector of the response variable
 
+    Returns:
+    r2_train - float. r-squared value for train set
+    r2_test - float. r-squared value for test set
+    
+
+    Steps:
+    1. Remove predictor variables from X if they have non-zeros less than cutoff number (=10% of the total)
+    2. Split the data into train and test sets
+    3. Fit the model and obtain the prediction results
+    4. Calculate the error metric, r-squared, for the train and test sets
+    '''
+    
+    # # Candidate parameters to be examined 
+    # params = {
+    #     'rfr__max_depth': [10, 12, 15],
+    #     'rfr__min_samples_leaf': [2, 3, 4],
+    #     'rfr__min_samples_split': [4, 6, 8],
+    #     'rfr__n_estimators': [200]
+    #     }
+    
+    # # Create pipelines for feature scaling and a regressor
+    # pipeline = Pipeline([
+    #         ('rescale', StandardScaler()),
+    #         ('rfr', RandomForestRegressor(random_state=149))
+    #     ])
+
+    # # Grid search cross validation
+    # cv = GridSearchCV(pipeline, param_grid=params, cv=KFold(5, shuffle=True, random_state = 149))
+        
+    # return cv
         
 
 
@@ -37,43 +96,6 @@ def generate_X_y(df):
 
 
 
-def clean_data(df):
-    '''
-    INPUT
-    df - pandas dataframe
-
-    OUTPUT
-    X - A matrix holding all of the variables you want to consider when predicting the response
-    y - the corresponding response vector
-
-    This function cleans df using the following steps to produce X and y:
-    1. Drop all the rows with no salaries
-    2. Create X as all the columns that are not the Salary column
-    3. Create y as the Salary column
-    4. Drop the Salary, Respondent, and the ExpectedSalary columns
-    5. For each numeric variable, fill the column with the mean value.
-    6. Create dummy columns for all the categorical variables, drop the original columns
-    '''
-    # Drop rows with missing salary values
-    df = df.dropna(subset=['Salary'], axis=0)
-    y = df['Salary']
-
-    #Drop respondent and expected salary columns
-    df = df.drop(['Respondent', 'ExpectedSalary', 'Salary'], axis=1)
-
-    # Fill numeric columns with the mean
-    num_vars = df.select_dtypes(include=['float', 'int']).columns
-    for col in num_vars:
-        df[col].fillna((df[col].mean()), inplace=True)
-
-    # Dummy the categorical variables
-    cat_vars = df.select_dtypes(include=['object']).copy().columns
-    for var in  cat_vars:
-        # for each cat add dummy var, drop original column
-        df = pd.concat([df.drop(var, axis=1), pd.get_dummies(df[var], prefix=var, prefix_sep='_', drop_first=True)], axis=1)
-
-    X = df
-    return X, y
 
 def find_optimal_lm_mod(X, y, cutoffs, test_size = .30, random_state=42, plot=True):
     '''
