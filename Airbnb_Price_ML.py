@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import train_test_split, KFold, GridSearchCV
@@ -31,10 +32,10 @@ class ML_regression:
         '''
 
         # 1. Take out the column with categorical variables of more than 30
-        cat_vars = df.select_dtypes(include=['object']).copy().columns # select the columns of categorical variables
+        cat_vars = self.df.select_dtypes(include=['object']).copy().columns # select the columns of categorical variables
         for col in cat_vars:
-            if df[col].nunique() > 30:
-                df = df.drop(col, axis=1) # remove the column if the number of unique values is higher than 30  
+            if self.df[col].nunique() > 30:
+                df = self.df.drop(col, axis=1) # remove the column if the number of unique values is higher than 30  
 
         # 2. For quantitative variables, fill in missing values with the mean values of corresponding "accommodates" (use groupby)
         num_vars = df.select_dtypes(include=['float', 'int']).columns # take only quantitative variables columns
@@ -58,11 +59,7 @@ class ML_regression:
         # 6. Take price column as Y vector
         y = df['price'].copy()
 
-        # Define the attributes
-        self.X = reduced_X
-        self.y = y
-
-        return reduced_X, y
+        return df, reduced_X, y
     
 
     def perform_rfr(self):
@@ -82,6 +79,12 @@ class ML_regression:
         4. Present the error metrics, r-squared and MAE, for the train and test sets
         '''
 
+        # Execute generate_X_y and define the attributes
+        df, X, y = self.generate_X_y()
+        self.df = df
+        self.X = X
+        self.y = y
+        
         # Split the data into train and test sets
         X_train, X_test, y_train, y_test = train_test_split(self.X, self.y, test_size = 0.2, random_state = 192)
 
@@ -123,15 +126,44 @@ class ML_regression:
         # return X_train, X_test, y_train, y_test, rfr_model, error_metrics_dict
      
 
-def feature_importance(self):
-    ''' Analyze features importance and present the results
-        Args:
-        None
+    def feature_importance(self, top_n):
+        ''' Analyze features importance and present the results
+            Args:
+            top_n: integer. The number of top features to present in a bar chart
 
-        Returns:
-       
-    
-        Steps:
-       
-        '''
-    df_feature_importance = pd.DataFrame(X_testing.columns, columns=['feature'])
+            Returns:
+            Bar chart - Matplotlib plot showing the feature importance scores
+        
+            Steps:
+            1. Save the feature importance scores (Gini importance) in a pandas dataframe
+            2. Plot the top 10 scores
+            '''
+        # Save the scores in a dataframe
+        df_feature_importance = pd.DataFrame(self.X.columns, columns=['feature'])
+        df_feature_importance['rfr_score'] = self.rfr_model.best_estimator_[1].feature_importances_
+        df_feature_importance = df_feature_importance.sort_values('rfr_score', ascending=False).reset_index()
+
+        # Plot the scores
+        ## initiate the plot object
+        plt.figure(figsize=(15,10))
+        ax = plt.subplot()
+
+        ## make a horizontal bar chart for top n features
+        ax.barh(list(range(top_n,0,-1)), 
+                df_feature_importance['rfr_score'].head(top_n), 
+                align = 'center')
+        
+        ## set the paramters for a chart
+        ax.set_yticks(list(range(top_n,0,-1)))
+        ax.set_yticklabels(df_feature_importance['feature'].head(top_n))
+        plt.xticks(fontsize=15)
+        plt.yticks(fontsize=15)
+        
+        # Plot labeling
+        plt.xlabel('Feature Importance Score', fontsize=18)
+        plt.title('Top ' + str(top_n) + ' Feature Importances', fontsize=18)
+        plt.show()
+
+
+
+
