@@ -163,7 +163,3 @@ class ML_regression:
         plt.xlabel('Feature Importance Score', fontsize=18)
         plt.title('Top ' + str(top_n) + ' Feature Importances', fontsize=18)
         plt.show()
-
-
-
-
