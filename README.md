@@ -15,7 +15,8 @@ First, as I plan my big family vacation to Hawaii, I was interested in
 1. What is the most popular neighborhood for a big family vacation with Airbnb in Hawaii?
 2. What are the busiest times of the year to visit the top 10 popular neighborhoods? By how much do prices spike?
 
-Then, I wanted to expand the perspective of looking at this Airbnb data as I was also curious about the factors affecting the Airbnb prices and if we could predict the prices for listing. To answer these questions, I developed predictive models for price and analyzed the important factors in the price of listings. This would be beneficial for potential Airbnb hosts who plan to launch their new accommodation in Hawaii to help set competitive prices.  
+Then, I wanted to expand the perspective of looking at this Airbnb data as I was also curious about the factors affecting the Airbnb prices and if we could predict the prices for listing. To answer these questions, I developed predictive models for price and analyzed the important factors in the price of listings. This would be beneficial for potential Airbnb hosts who plan to launch their new accommodation in Hawaii to help set competitive prices.
+
 3. How to set the price for a new Airbnb property as a new host? What factors affect Airbnb prices in Hawaii?
 
 
