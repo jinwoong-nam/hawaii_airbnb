@@ -21,14 +21,14 @@ Then, I wanted to expand the perspective of looking at this Airbnb data as I was
 
 
 ## File Descriptions <a name="files"></a>
-There are two notebook files and one `.py` file.  
+There are two notebook files and one `.py` file. Two csv files (listings.csv, calendar.csv) used in this analysis can be downloaded [here](http://insideairbnb.com/get-the-data/).
 - The part-1 notebook (`hawaii_airbnb_q1_q2_part1.ipynb`) includes exploratory data analysis (EDA) along with descriptive statistics regarding the question 1 and 2.  
 - The part-2 notebook (`hawaii_airbnb_q3_part2.ipynb`) deals with question 3 where data wrangling, EDA, machine learning model development, and post-analysis are performed.  
 - `Airbnb_Price_ML.py` covers the functions for data pre-processing, feature selection + engineering, model training + testing, and feature importance analysis.
 
 
 ## Results<a name="results"></a>
-The key findings obtained from the code can be found at the Medium post [here].
+The key findings obtained from the code can be found at the Medium article [here](https://medium.com/@smartjw0224/analysis-of-airbnb-data-of-hawaii-beneficial-for-both-guests-and-hosts-f3b775115a4d).
 
 
 ## Licensing, Authors, Acknowledgements<a name="licensing"></a>
